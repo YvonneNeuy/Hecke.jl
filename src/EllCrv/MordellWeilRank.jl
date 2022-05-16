@@ -25,11 +25,11 @@ Check if the quartic defined by ax^4+bx^3+cx^2+dx+e is soluble over the real fie
 """
 function quartic_local_solubility(a, b, c, d, e)
 
-  if !(R_soluble(a,b,c,d,e))
+  if !R_soluble(a,b,c,d,e)
     return false
   end
 
-  if !(Qp_soluble(a,b,c,d,e,2)) 
+  if !Qp_soluble(a,b,c,d,e,2) 
     return false
   end
 
@@ -42,7 +42,7 @@ function quartic_local_solubility(a, b, c, d, e)
   p_list = sort(p_list)
 
   for p in p_list
-    if (!Qp_soluble(a,b,c,d,e,p))
+    if !Qp_soluble(a,b,c,d,e,p)
       return false
     end
   end
@@ -62,11 +62,7 @@ function R_soluble(a, b, c, d, e)
   
   R,x = PolynomialRing(ZZ,"x")
   
-  if (signature(a*x^4+b*x^3+c*x^2+d*x+e)[1]>0)
-    return true
-  else
-    return false
-  end
+  return signature(a*x^4+b*x^3+c*x^2+d*x+e)[1]>0
 end
 
 @doc Markdown.doc"""
@@ -77,11 +73,11 @@ Check if the quartic defined by $ax^4+bx^3+cx^2+dx+e$ has a solution over the lo
 """
 function Qp_soluble(a, b, c, d, e, p)
   R,x = PolynomialRing(QQ,"x")
-  if(Zp_soluble(a,b,c,d,e,0,p,0))
+  if Zp_soluble(a,b,c,d,e,0,p,0)
     return true
   end
   
-  if(Zp_soluble(e,d,c,b,a,0,p,1))
+  if Zp_soluble(e,d,c,b,a,0,p,1)
     return true
   end
   return false
@@ -89,16 +85,16 @@ end
 
 
 function Zp_soluble(a,b,c,d,e,x_k,p,k)
-  if (p==2)
+  if p == 2
     code = lemma7(a,b,c,d,e,x_k,k)
   else
     code = lemma6(a,b,c,d,e,x_k,p,k)
   end
 
-  if code==1
+  if code == 1
     return true
   end
-  if code==-1
+  if code == -1
     return false
   end
   
@@ -111,7 +107,8 @@ function Zp_soluble(a,b,c,d,e,x_k,p,k)
   return false
 end
 
-#Z_p lifting for odd p
+#Z_p lifting subroutine for odd p. Lemma 6 from Cremona Chapter 3, page 82. 
+#For generalization to number fields, see Appendix of Siksek's thesis
 
 function lemma6(a,b,c,d,e,x,p,n)
   gx = a*x^4+b*x^3+c*x^2+d*x+e
@@ -144,8 +141,8 @@ function lemma6(a,b,c,d,e,x,p,n)
   return -1
 end
 
-#Z_p lifting for p=2
-
+#Z_p lifting subroutine for p=2. Lemma 7 from Cremona Chapter 3, page 82.
+#For generalization to number fields, see Appendix of Siksek's thesis
 function lemma7(a,b,c,d,e,x,n)
   gx = a*x^4+b*x^3+c*x^2+d*x+e
   # Test if square in Z2
@@ -206,10 +203,10 @@ function quartic_rational_point_search(a, b, c, d, e, lower_bound, upper_bound, 
   R = Globals.Qx
   for n in lower_bound:upper_bound
     if n==1
-      if AbstractAlgebra.issquare(a)
+      if AbstractAlgebra.is_square(a)
         return true
       end
-      if AbstractAlgebra.issquare(e)
+      if AbstractAlgebra.is_square(e)
         return true
       end
     else
@@ -234,13 +231,13 @@ function quartic_rational_point_search(a, b, c, d, e, lower_bound, upper_bound, 
           mul!(tmp2, e, w4)
           add!(tmp1, tmp1, tmp2)
           # we have tmp1 == a*u^4+b*u^3*w+c*u^2*w^2+d*u*w^3+e*w^4
-          if AbstractAlgebra.issquare(tmp1)
+          if AbstractAlgebra.is_square(tmp1)
             return true
           end
           add!(tmp1, tmp1, - 2 * b * u3w)
           add!(tmp1, tmp1, - 2 * d * uw3)
           # now tmp1 == a*u^4-b*u^3*w+c*u^2*w^2-d*u*w^3+e*w^4
-          if AbstractAlgebra.issquare(tmp1)
+          if AbstractAlgebra.is_square(tmp1)
             return true
           end
         end
@@ -288,11 +285,11 @@ function rank_2_torsion(E::EllCrv, lim1=100, lim2 = 1000)
   R,x = PolynomialRing(QQ,"x")
   list = roots(x^3+s2*x^2+s4*x+s6)
 
-  if all(!isintegral, list)
+  if all(!is_integral, list)
     throw(DomainError(E, "No rational 2-torsion"))
   end
 
-  x0 = numerator(list[findfirst(isintegral, list)])
+  x0 = numerator(list[findfirst(is_integral, list)])
 
   c = 3*x0+s2
   d = (c+s2)*x0+s4
@@ -383,5 +380,5 @@ function _issquarefree2(n)
   if (n==1)
     return false
   end
-  return AbstractAlgebra.issquarefree(n)
+  return AbstractAlgebra.is_squarefree(n)
 end
